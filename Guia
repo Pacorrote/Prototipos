@@ -1,0 +1,485 @@
+Funciones básicas para listas simplemente ligadas en C
+En este post voy a poner un archivo de cabecera que hice para poder crear programas que utilicen listas simplemente ligadas, contiene las funciones básicas y está diseñado para manejar enteros, pero es muy fácil hacer la implementación de un archivo de cabecera que acepte otro tipo de datos (char, etc.).
+
+La estructura básica es la siguiente
+
+1
+2
+3
+4
+5
+typedef struct nodo_s
+{
+ int dato;
+ struct nodo_s *siguiente;
+} nodo_t;
+Implementé una función para crear un nodo con el valor que contendrá el campo llamado dato, una función para insertar un nodo, para eliminar un nodo, para saber si la lista está vacía y una función que muestra todos los nodos de la lista.
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+98
+99
+100
+101
+102
+103
+104
+105
+106
+107
+108
+109
+110
+111
+112
+113
+114
+115
+116
+117
+118
+119
+120
+121
+122
+123
+124
+125
+126
+127
+128
+129
+130
+131
+132
+133
+134
+135
+136
+// Archivo listasimple_int.h
+ 
+#include <stdio.h>
+#include <stdlib.h>
+ 
+typedef struct nodo_s
+{
+ int dato;
+ struct nodo_s *siguiente;
+} nodo_t;
+ 
+typedef nodo_t *ptrNodo;
+typedef nodo_t *ptrLista;
+ 
+/*
+Crea un nuevo nodo y en el campo dato almacena el valor que recibe como parámetro
+regresa el nodo recien creado
+*/
+ptrNodo crea_nodo(int valor)
+{
+ ptrNodo nuevo_nodo = (ptrNodo)malloc(sizeof(nodo_t));
+ if (nuevo_nodo != NULL)
+    {
+     nuevo_nodo->dato = valor;
+     nuevo_nodo->siguiente = NULL;
+    }
+ 
+ return nuevo_nodo;
+}
+ 
+/*
+Agrega a la lista que recibe como parámetro, un nodo enseguida del nodo que recibe como parámetro
+Si el nodo que recibe como parámetro es NULL, significa que se desea insertar el nodo al inicio de la lista
+*/
+void inserta_despues(ptrLista *lista, ptrNodo nodo, int valor)
+{
+ ptrNodo nuevo_nodo = crea_nodo(valor);
+ 
+ if (nodo != NULL)
+    {
+     /* El apuntador nuevo_nodo->siguiente va a apuntar a la misma dirección a donde apunta
+        el apuntador "siguiente" del nodo que recibe como parámetro
+     */
+     nuevo_nodo->siguiente = nodo->siguiente;
+     /* El apuntador "siguiente" del nodo que recibe como parámetro va a apuntar al nodo recien creado
+        con esto, el nodo recien creado se ha insertado adelante del nodo que se recibe como parámetro
+     */
+     nodo->siguiente = nuevo_nodo;
+    }
+ else
+    {
+     // Si la lista no está vacía, hace que el apuntador "siguiente" del nuevo nodo apunte al primer elemento de la lista
+     if (*lista != NULL)
+         nuevo_nodo->siguiente = *lista;
+     // Hace que la lista apunte hacia el nuevo nodo para que sea el primer nodo de la lista
+     *lista = nuevo_nodo;
+    }
+}
+ 
+/*
+  Elimina el nodo que se encuentra enseguida del nodo que recibe como parámetro
+  Si el nodo que recibe como parámetro es NULL, y la lista no está vacía,
+  significa que se desea borrar el primer nodo de la lista
+*/
+int elimina_despues(ptrLista *lista, ptrNodo nodo)
+{
+ int x=0;
+ ptrNodo borrar_nodo = NULL;
+ 
+ if (nodo != NULL)
+    {
+     if (nodo->siguiente != NULL)
+        {
+         /* El apuntador borrar_nodo va a apuntar a la misma dirección a donde apunta
+            el apuntador "siguiente" del nodo que recibe como parámetro
+         */
+         borrar_nodo = nodo->siguiente;
+         /* El apuntador "siguiente" del nodo que recibe como parámetro va a apuntar al nodo que está
+            a continuación del que se va a borrar
+         */
+         nodo->siguiente = borrar_nodo->siguiente;
+        }
+    }
+ else
+     {
+      // Si la lista no está vacia, significa que quiere borrar el primer nodo de la lista
+      if (*lista != NULL)
+         {
+          borrar_nodo = *lista;
+          *lista = borrar_nodo->siguiente;
+         }
+     }
+ 
+ /* Si el apuntador "siguiente" del nodo que recibe como parámetro apunta a NULL, significa que el apuntador
+    que se recibió como parámetro es el último de la lista, por lo tanto, no hay nodo siguiente
+    Otro caso por el cual borrar_nodo puede ser null, es que la lista esté vacía, y también es imposible hacer la eliminación de un nodo
+ */
+ if (borrar_nodo != NULL)
+    {
+     x=borrar_nodo->dato;
+     free(borrar_nodo);
+    }
+ else
+     printf("Borrado prohibido\n");
+ 
+ return x;
+}
+ 
+/*
+  Regresa 1 si no hay nodos en la lista ligada y cero en caso contrario
+  *lista es el apuntador que apunta a la lista ligada
+*/
+int lista_vacia(ptrLista *lista)
+{
+ return (*lista == NULL ? 1:0);
+}
+ 
+/*
+  Muestra los datos de los nodos
+*/
+void nodos_lista(ptrNodo nodo)
+{
+ if (nodo == NULL)
+     printf("La lista está vacia\n");
+ else
+     {
+      while (nodo != NULL)
+            {
+             printf("%d",nodo->dato);
+             nodo = nodo->siguiente;
+             if (nodo != NULL)
+                 printf(" -> ");
+            }
+      printf("\n");
+     }
+}
+A continuación muestro un programa muy sencillo para que sirva de ejemplo de cómo utilizar este archivo de cabecera, el programa pide al usuario que vaya insertando números enteros y los va insertando en orden en una lista simplemente ligada; cuando el usuario no quiera introducir más números, debe introducir el número cero. Después, el programa da opción a borrar un número de la lista.
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45
+46
+47
+48
+49
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+74
+75
+76
+77
+78
+79
+80
+81
+82
+83
+84
+85
+86
+87
+88
+89
+90
+91
+92
+93
+94
+95
+96
+97
+//      ordena_listasimple.c
+//
+//      Hecho por Salomón Rincón Torres <rtmex@yahoo.com>
+//
+ 
+#include <stdio.h>
+#include "listasimple_int.h"
+ 
+int main()
+{
+ int numero=0, insertado=0, encontrado=0;
+ ptrLista lista = NULL;
+ ptrNodo nodo = NULL;
+ 
+do
+  {
+   insertado = 0;
+   printf("Este programa recibe números y los va insertando en orden ascendente en una lista simplemente ligada\n");
+   printf("Vaya introduciendo los números (introduzca cero para salir del programa)\n");
+   scanf("%d", &numero);
+ 
+   if (numero!=0)
+      {
+       if (lista_vacia(&lista) == 1)
+           inserta_despues(&lista, NULL, numero);
+       else
+           {
+            nodo = lista;
+            if (numero <= nodo->dato)
+                // Inserta el número al inicio de la lista
+                inserta_despues(&lista, NULL, numero);
+            else
+                while (nodo != NULL && insertado == 0)
+                      {
+                       if (numero > nodo->dato)
+                          {
+                           if (nodo->siguiente != NULL)
+                              {
+                               if (numero > nodo->siguiente->dato)
+                                   nodo = nodo->siguiente;
+                               else
+                                   {
+                                    inserta_despues(&lista, nodo, numero);
+                                    insertado = 1;
+                                   }
+                              } /* if */
+                           else
+                               {
+                                inserta_despues(&lista, nodo, numero);
+                                insertado = 1;
+                               }
+                          } /* if */
+                      } /* while */
+           } /* else */
+       printf("\n\nLos elementos en la lista son los siguientes;\n\n");
+       // Muestra los elementos que están en la lista
+       nodos_lista(lista);
+      } /* if */
+  }
+while (numero!=0);
+ 
+printf("\n\nLa lista quedó con los siguientes elementos:\n\n");
+// Muestra los elementos que están en la lista
+nodos_lista(lista);
+ 
+if (lista_vacia(&lista) != 1)
+   {
+    printf("\nDato a borrar\n");
+    scanf("%d", &numero);
+ 
+    nodo = lista;
+    if (nodo != NULL)
+        // Verifica si el número que se desea borrar es el primero de la lista
+        if (nodo->dato == numero)
+            elimina_despues(&lista, NULL);
+        else
+            {
+             while (nodo != NULL && encontrado == 0)
+                   {
+                    if (nodo->siguiente != NULL)
+                       {
+                        if (nodo->siguiente->dato==numero)
+                            encontrado = 1;
+                       }
+                    if (encontrado == 0)
+                        nodo = nodo->siguiente;
+                   }
+             if (encontrado == 1)
+                 elimina_despues(&lista, nodo);
+            }
+ 
+    printf("\n\nLa lista final quedó con los siguientes elementos:\n\n");
+    // Muestra los elementos que están en la lista
+    nodos_lista(lista);
+   }
+return 0;
+}
